@@ -12,7 +12,8 @@
         "dotenv": "^16.1.4"
     },
     "scripts": {
-        "test:static": "slither ./contracts"
+        "test:static": "slither ./contracts",
+        "test" : "npx hardhat test --network hardhat"
     }
   
 }

@@ -14,7 +14,7 @@
     },
     "scripts": {
         "test:static": "slither ./contracts",
-        "test": "npx hardhat test --network hardhat",
+        "test": "REPORT_GAS=true npx hardhat test --network hardhat",
         "deploy": "npx hardhat run scripts/deploy.ts"
     }
 }

@@ -125,6 +125,14 @@ contract Escrow {
         emit DeliveryConfirmed(productId, msg.sender);
     }
 
+    /// @dev Function to confirm the delivery of multiple products
+    /// @param productIds an array of product ids
+    function batchConfirmDelivery(uint[] memory productIds) public {
+        for (uint i = 0; i < productIds.length; i++) {
+            confirmDelivery(productIds[i]);
+        }
+    }
+
     /// @dev Function to withdraw the funds of an address
     function withdraw() public {
         uint amountToWithdraw = pendingWithdrawalBalance[msg.sender];

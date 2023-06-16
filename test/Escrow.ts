@@ -131,6 +131,31 @@ describe("Escrow Contract Tests", function () {
     });
   });
 
+  describe("Batch Confirmation Process Tests", function () {
+    const productCount = 5;
+
+    it("Should confirm delivery of multiple products", async function () {
+      const { escrowPopulatedWithProducts, buyer } =
+        await deployEscrowAndAddProductItems(productCount);
+
+      // Array to store ids of products to confirm
+      const productIdsToConfirm = [1, 2, 3];
+
+      // Confirm delivery of multiple products
+      await escrowPopulatedWithProducts.batchConfirmDelivery(
+        productIdsToConfirm
+      );
+
+      // Check each product and verify delivery confirmation
+      for (let i = 0; i < productIdsToConfirm.length; i++) {
+        const product = await escrowPopulatedWithProducts.productList(
+          productIdsToConfirm[i]
+        );
+        expect(product.isDelivered).to.be.true;
+      }
+    });
+  });
+
   describe("Withdrawal Process Tests", function () {
     const productCount = 5;
 

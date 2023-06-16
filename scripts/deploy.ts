@@ -1,4 +1,4 @@
-const { ethers } = require("hardhat");
+import { ethers } from "hardhat";
 
 async function main() {
   const devWalletAddress = "0x684653D5315f1Cb36cE13814F42C7f83F1791168";

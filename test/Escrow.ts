@@ -1,5 +1,5 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { calculateSum, generateProducts } from "../utils/helpers";
@@ -8,12 +8,13 @@ describe("Escrow Contract Tests", function () {
   const testBuyerIndex = 9;
 
   async function deployEscrow() {
-    let [developerWallet, daoWallet, buyer, seller, other] =
+    let [developerWallet, daoWallet, arbitratorWallet] =
       await ethers.getSigners();
     const EscrowFactory = await ethers.getContractFactory("Escrow");
     const escrowInstance = await EscrowFactory.deploy(
       daoWallet.address,
-      developerWallet.address
+      developerWallet.address,
+      arbitratorWallet.address
     );
 
     return { escrowInstance, developerWallet, daoWallet };
@@ -132,14 +133,14 @@ describe("Escrow Contract Tests", function () {
   });
 
   describe("Batch Confirmation Process Tests", function () {
-    const productCount = 5;
+    const productCount = 10;
 
     it("Should confirm delivery of multiple products", async function () {
       const { escrowPopulatedWithProducts, buyer } =
         await deployEscrowAndAddProductItems(productCount);
 
       // Array to store ids of products to confirm
-      const productIdsToConfirm = [1, 2, 3];
+      const productIdsToConfirm = [1, 2, 3, 8, 9];
 
       // Confirm delivery of multiple products
       await escrowPopulatedWithProducts.batchConfirmDelivery(
@@ -157,7 +158,7 @@ describe("Escrow Contract Tests", function () {
   });
 
   describe("Withdrawal Process Tests", function () {
-    const productCount = 5;
+    const productCount = 10;
 
     it("Should allow withdrawal of funds after product delivery", async function () {
       const { escrowPopulatedWithProducts, buyer } =

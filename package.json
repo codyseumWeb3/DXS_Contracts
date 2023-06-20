@@ -13,6 +13,7 @@
         "typescript": "^5.0.4"
     },
     "scripts": {
+        "install:slither": "pip install -r ./requirements.txt",
         "test:static": "slither ./contracts",
         "test": "REPORT_GAS=true npx hardhat test --network hardhat",
         "deploy": "npx hardhat run scripts/deploy.ts"

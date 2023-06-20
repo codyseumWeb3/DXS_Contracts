@@ -121,7 +121,7 @@ contract Escrow {
     /// @param productId the id of the product
     function confirmDelivery(uint productId) public {
         Product storage product = productList[productId];
-        require(product.exists, "Product doesn't exist.");
+        require(product.isExisting, "Product doesn't exist.");
 
         require(
             (isDispute[productId] && arbitratorAddress == msg.sender) ||
@@ -223,7 +223,7 @@ contract Escrow {
                 product.sellerAddress == payable(msg.sender),
             "Only the Buyer or the seller can open a dispute."
         );
-        require(product.exists, "Product doesn't exist.");
+        require(product.isExisting, "Product doesn't exist.");
 
         isDispute[productId] = true;
         fundsForArbitrator += msg.value;
@@ -238,7 +238,7 @@ contract Escrow {
         );
 
         Product storage product = productList[productId];
-        require(product.exists, "Product doesn't exist.");
+        require(product.isExisting, "Product doesn't exist.");
         require(
             isDispute[productId],
             "Dispute doesn't exist for this product."

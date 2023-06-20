@@ -22,7 +22,7 @@ contract Escrow {
         uint productPrice;
         bool isDelivered;
         uint purchaseTime;
-        bool exists;
+        bool isExisting;
     }
 
     /// @dev A mapping to store products by their IDs
@@ -91,9 +91,16 @@ contract Escrow {
 
         for (uint i = 0; i < ids.length; i++) {
             require(
-                !productList[ids[i]].exists,
+                !productList[ids[i]].isExisting,
                 "Product with this ID already exists"
             );
+
+            for (i = 0; i < prices.length; i++) {
+                require(
+                    prices[i] > 0,
+                    "Product's prices should be greater than zero"
+                );
+            }
         }
 
         emit FundsReceived(msg.sender, msg.value);
@@ -106,7 +113,7 @@ contract Escrow {
             newProduct.productPrice = prices[i];
             newProduct.isDelivered = false;
             newProduct.purchaseTime = block.timestamp;
-            newProduct.exists = true;
+            newProduct.isExisting = true;
         }
     }
 

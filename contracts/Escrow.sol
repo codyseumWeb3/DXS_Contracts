@@ -94,13 +94,13 @@ contract Escrow {
                 !productList[ids[i]].isExisting,
                 "Product with this ID already exists"
             );
+        }
 
-            for (i = 0; i < prices.length; i++) {
-                require(
-                    prices[i] > 0,
-                    "Product's prices should be greater than zero"
-                );
-            }
+        for (uint i = 0; i < prices.length; i++) {
+            require(
+                prices[i] > 0,
+                "Product's prices should be greater than zero"
+            );
         }
 
         emit FundsReceived(msg.sender, msg.value);

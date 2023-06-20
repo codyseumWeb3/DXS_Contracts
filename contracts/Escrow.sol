@@ -35,7 +35,7 @@ contract Escrow {
     uint public fundsForDev;
     uint public fundsForArbitrator;
 
-    uint constant public openDisputeFee = 0.01 ether;
+    uint public constant OPEN_DISPUTE_FEE = 0.01 ether;
 
     address payable public immutable daoWalletAddress;
     address payable public immutable devWalletAddress;
@@ -74,7 +74,7 @@ contract Escrow {
         uint[] memory ids,
         address payable[] memory sellers,
         uint[] memory prices
-    ) public payable {
+    ) external payable {
         require(
             ids.length == sellers.length && sellers.length == prices.length,
             "Input arrays must have the same length"
@@ -150,14 +150,14 @@ contract Escrow {
 
     /// @dev Function to confirm the delivery of multiple products
     /// @param productIds an array of product ids
-    function batchConfirmDelivery(uint[] memory productIds) public {
+    function batchConfirmDelivery(uint[] memory productIds) external {
         for (uint i = 0; i < productIds.length; i++) {
             confirmDelivery(productIds[i]);
         }
     }
 
     /// @dev Function to withdraw the funds of an address
-    function withdraw() public {
+    function withdraw() external {
         uint amountToWithdraw = pendingWithdrawalBalance[msg.sender];
         emit Withdrawn(msg.sender, amountToWithdraw);
         require(amountToWithdraw > 0, "No funds available for withdrawal");
@@ -168,7 +168,7 @@ contract Escrow {
     }
 
     /// @dev Function to withdraw DAO's funds
-    function withdrawDAO() public {
+    function withdrawDAO() external {
         require(
             msg.sender == daoWalletAddress,
             "Only the DAO can withdraw DAO funds"
@@ -181,7 +181,7 @@ contract Escrow {
     }
 
     /// @dev Function to withdraw Developer's funds
-    function withdrawDev() public {
+    function withdrawDev() external {
         require(
             msg.sender == devWalletAddress,
             "Only the Dev can withdraw Dev funds"
@@ -194,7 +194,7 @@ contract Escrow {
     }
 
     /// @dev Function to withdraw arbitrator's funds
-    function withdrawArbitrator() public {
+    function withdrawArbitrator() external {
         require(
             msg.sender == arbitratorAddress,
             "Only the aribtrator can withdraw arbitrator funds"
@@ -211,11 +211,11 @@ contract Escrow {
 
     /// @dev Opens a dispute for a given product. Requires enough Ether to cover the dispute fee.
     /// @param productId The ID of the product for which to open a dispute.
-    function openDispute(uint productId) public payable {
+    function openDispute(uint productId) external payable {
         Product storage product = productList[productId];
 
         require(
-            msg.value >= openDisputeFee,
+            msg.value >= OPEN_DISPUTE_FEE,
             "You need to pay enough fee to open a dispute"
         );
         require(
@@ -231,7 +231,7 @@ contract Escrow {
 
     /// @dev Refunds the buyer for a given product.
     /// @param productId The ID of the product to refund.
-    function refundBuyer(uint productId) public {
+    function refundBuyer(uint productId) external {
         require(
             arbitratorAddress == payable(msg.sender),
             "Only the Arbitror can refund the buyer"

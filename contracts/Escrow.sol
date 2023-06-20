@@ -4,12 +4,7 @@ pragma solidity ^0.8.18;
 /// @title An Escrow contract for managing product purchases and payments
 contract Escrow {
     // Event definitions
-    event ProductAdded(
-        uint indexed id,
-        address indexed seller,
-        address indexed buyer,
-        uint price
-    );
+    event ProductAdded(uint indexed id, address indexed seller, address indexed buyer, uint price);
     event DeliveryConfirmed(uint indexed id, address indexed buyer);
     event Withdrawn(address indexed withdrawer, uint amount);
     event FundsReceived(address indexed sender, uint amount);
@@ -49,18 +44,9 @@ contract Escrow {
         address payable _devWalletAddress,
         address payable _arbitratorAddress
     ) {
-        require(
-            _daoWalletAddress != address(0),
-            "DAO address cannot be the zero address"
-        );
-        require(
-            _devWalletAddress != address(0),
-            "Dev address cannot be the zero address"
-        );
-        require(
-            _arbitratorAddress != address(0),
-            "Arbitrator address cannot be the zero address"
-        );
+        require(_daoWalletAddress != address(0), 'DAO address cannot be the zero address');
+        require(_devWalletAddress != address(0), 'Dev address cannot be the zero address');
+        require(_arbitratorAddress != address(0), 'Arbitrator address cannot be the zero address');
         daoWalletAddress = _daoWalletAddress;
         devWalletAddress = _devWalletAddress;
         arbitratorAddress = _arbitratorAddress;
@@ -70,37 +56,24 @@ contract Escrow {
     /// @param ids an array of product ids
     /// @param sellers an array of seller addresses
     /// @param prices an array of product prices
-    function addProducts(
-        uint[] memory ids,
-        address payable[] memory sellers,
-        uint[] memory prices
-    ) external payable {
+    function addProducts(uint[] memory ids, address payable[] memory sellers, uint[] memory prices) external payable {
         require(
             ids.length == sellers.length && sellers.length == prices.length,
-            "Input arrays must have the same length"
+            'Input arrays must have the same length'
         );
         uint totalProductPrice = 0;
         for (uint i = 0; i < prices.length; i++) {
             totalProductPrice += prices[i];
         }
 
-        require(
-            msg.value >= totalProductPrice,
-            "Ether sent must cover total price of all products"
-        );
+        require(msg.value >= totalProductPrice, 'Ether sent must cover total price of all products');
 
         for (uint i = 0; i < ids.length; i++) {
-            require(
-                !productList[ids[i]].isExisting,
-                "Product with this ID already exists"
-            );
+            require(!productList[ids[i]].isExisting, 'Product with this ID already exists');
         }
 
         for (uint i = 0; i < prices.length; i++) {
-            require(
-                prices[i] > 0,
-                "Product's prices should be greater than zero"
-            );
+            require(prices[i] > 0, "Product's prices should be greater than zero");
         }
 
         emit FundsReceived(msg.sender, msg.value);
@@ -125,15 +98,11 @@ contract Escrow {
 
         require(
             (isDispute[productId] && arbitratorAddress == msg.sender) ||
-                (!isDispute[productId] &&
-                    product.buyerAddress == payable(msg.sender)),
-            "Only the buyer or arbitrator can confirm delivery."
+                (!isDispute[productId] && product.buyerAddress == payable(msg.sender)),
+            'Only the buyer or arbitrator can confirm delivery.'
         );
 
-        require(
-            !product.isDelivered,
-            "Product delivery has already been confirmed."
-        );
+        require(!product.isDelivered, 'Product delivery has already been confirmed.');
 
         product.isDelivered = true;
 
@@ -158,7 +127,7 @@ contract Escrow {
 
     /// @dev Generic function to handle withdrawal
     function _withdraw(uint256 amount, address payable receiver) internal {
-        require(amount > 0, "No funds available for withdrawal");
+        require(amount > 0, 'No funds available for withdrawal');
         emit Withdrawn(receiver, amount);
 
         receiver.transfer(amount);
@@ -167,7 +136,7 @@ contract Escrow {
     /// @dev Function to withdraw the funds of an address
     function withdraw() external {
         uint amountToWithdraw = pendingWithdrawalBalance[msg.sender];
-        require(amountToWithdraw > 0, "No funds available for withdrawal");
+        require(amountToWithdraw > 0, 'No funds available for withdrawal');
 
         pendingWithdrawalBalance[msg.sender] = 0;
 
@@ -176,13 +145,10 @@ contract Escrow {
 
     /// @dev Function to withdraw DAO's funds
     function withdrawDAO() external {
-        require(
-            msg.sender == daoWalletAddress,
-            "Only the DAO can withdraw DAO funds"
-        );
+        require(msg.sender == daoWalletAddress, 'Only the DAO can withdraw DAO funds');
 
         uint daoAmount = fundsForDao;
-        require(daoAmount > 0, "No DAO funds available for withdrawal");
+        require(daoAmount > 0, 'No DAO funds available for withdrawal');
 
         fundsForDao = 0;
 
@@ -191,13 +157,10 @@ contract Escrow {
 
     /// @dev Function to withdraw Developer's funds
     function withdrawDev() external {
-        require(
-            msg.sender == devWalletAddress,
-            "Only the Dev can withdraw Dev funds"
-        );
+        require(msg.sender == devWalletAddress, 'Only the Dev can withdraw Dev funds');
 
         uint devAmount = fundsForDev;
-        require(devAmount > 0, "No Dev funds available for withdrawal");
+        require(devAmount > 0, 'No Dev funds available for withdrawal');
 
         fundsForDev = 0;
 
@@ -206,16 +169,10 @@ contract Escrow {
 
     /// @dev Function to withdraw Arbitrator's funds
     function withdrawArbitrator() external {
-        require(
-            msg.sender == arbitratorAddress,
-            "Only the Arbitrator can withdraw Arbitrator funds"
-        );
+        require(msg.sender == arbitratorAddress, 'Only the Arbitrator can withdraw Arbitrator funds');
 
         uint arbitratorAmount = fundsForArbitrator;
-        require(
-            arbitratorAmount > 0,
-            "No Arbitrator funds available for withdrawal"
-        );
+        require(arbitratorAmount > 0, 'No Arbitrator funds available for withdrawal');
 
         fundsForArbitrator = 0;
 
@@ -227,14 +184,10 @@ contract Escrow {
     function openDispute(uint productId) external payable {
         Product storage product = productList[productId];
 
+        require(msg.value >= OPEN_DISPUTE_FEE, 'You need to pay enough fee to open a dispute');
         require(
-            msg.value >= OPEN_DISPUTE_FEE,
-            "You need to pay enough fee to open a dispute"
-        );
-        require(
-            product.buyerAddress == payable(msg.sender) ||
-                product.sellerAddress == payable(msg.sender),
-            "Only the Buyer or the seller can open a dispute."
+            product.buyerAddress == payable(msg.sender) || product.sellerAddress == payable(msg.sender),
+            'Only the Buyer or the seller can open a dispute.'
         );
         require(product.isExisting, "Product doesn't exist.");
 
@@ -245,17 +198,11 @@ contract Escrow {
     /// @dev Refunds the buyer for a given product.
     /// @param productId The ID of the product to refund.
     function refundBuyer(uint productId) external {
-        require(
-            arbitratorAddress == payable(msg.sender),
-            "Only the Arbitror can refund the buyer"
-        );
+        require(arbitratorAddress == payable(msg.sender), 'Only the Arbitror can refund the buyer');
 
         Product storage product = productList[productId];
         require(product.isExisting, "Product doesn't exist.");
-        require(
-            isDispute[productId],
-            "Dispute doesn't exist for this product."
-        );
+        require(isDispute[productId], "Dispute doesn't exist for this product.");
 
         pendingWithdrawalBalance[product.buyerAddress] += product.productPrice;
         product.isDelivered = true;

@@ -112,8 +112,7 @@ describe("Escrow Contract Tests", function () {
       const { escrowPopulatedWithProducts, buyer } =
         await deployEscrowAndAddProductItems(productCountToCreate);
 
-      const escrowFromBuyer =
-        escrowPopulatedWithProducts.connect(buyer);
+      const escrowFromBuyer = escrowPopulatedWithProducts.connect(buyer);
 
       await escrowFromBuyer.confirmDelivery(productIndexToCheck);
 
@@ -129,8 +128,7 @@ describe("Escrow Contract Tests", function () {
       const { escrowPopulatedWithProducts, buyer } =
         await deployEscrowAndAddProductItems(productCount);
 
-      const escrowFromBuyer =
-        escrowPopulatedWithProducts.connect(buyer);
+      const escrowFromBuyer = escrowPopulatedWithProducts.connect(buyer);
 
       await escrowFromBuyer.confirmDelivery(productIndexToCheck);
 
@@ -178,8 +176,7 @@ describe("Escrow Contract Tests", function () {
 
       const allSigners = await ethers.getSigners();
       const seller = allSigners[sellerIndex + 3];
-      const escrowFromSeller =
-        escrowPopulatedWithProducts.connect(seller);
+      const escrowFromSeller = escrowPopulatedWithProducts.connect(seller);
       const balanceBeforeWithdrawal = await seller.getBalance();
 
       //seller initiates withdrawal
@@ -204,8 +201,7 @@ describe("Escrow Contract Tests", function () {
         balanceBeforeDevWithdrawal
       );
 
-      const escrowFromDao =
-        escrowPopulatedWithProducts.connect(daoWallet);
+      const escrowFromDao = escrowPopulatedWithProducts.connect(daoWallet);
       const balanceBeforeDaoWithdrawal = await daoWallet.getBalance();
 
       //dao initiates withdrawal
@@ -252,7 +248,7 @@ describe("Escrow Contract Tests", function () {
       const productIndexToCheck = 2;
 
       const escrowFromBuyer = escrowPopulatedWithProducts.connect(buyer);
-      const openDisputeFee = await escrowFromBuyer.openDisputeFee();
+      const openDisputeFee = await escrowFromBuyer.OPEN_DISPUTE_FEE();
       await escrowFromBuyer.openDispute(productIndexToCheck, {
         value: openDisputeFee,
       });

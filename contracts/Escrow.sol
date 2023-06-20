@@ -156,15 +156,22 @@ contract Escrow {
         }
     }
 
+    /// @dev Generic function to handle withdrawal
+    function _withdraw(uint256 amount, address payable receiver) internal {
+        require(amount > 0, "No funds available for withdrawal");
+        emit Withdrawn(receiver, amount);
+
+        receiver.transfer(amount);
+    }
+
     /// @dev Function to withdraw the funds of an address
     function withdraw() external {
         uint amountToWithdraw = pendingWithdrawalBalance[msg.sender];
-        emit Withdrawn(msg.sender, amountToWithdraw);
         require(amountToWithdraw > 0, "No funds available for withdrawal");
 
         pendingWithdrawalBalance[msg.sender] = 0;
 
-        payable(msg.sender).transfer(amountToWithdraw);
+        _withdraw(amountToWithdraw, payable(msg.sender));
     }
 
     /// @dev Function to withdraw DAO's funds
@@ -173,11 +180,13 @@ contract Escrow {
             msg.sender == daoWalletAddress,
             "Only the DAO can withdraw DAO funds"
         );
-        require(fundsForDao > 0, "No DAO funds available for withdrawal");
+
         uint daoAmount = fundsForDao;
-        emit Withdrawn(daoWalletAddress, daoAmount);
+        require(daoAmount > 0, "No DAO funds available for withdrawal");
+
         fundsForDao = 0;
-        daoWalletAddress.transfer(daoAmount);
+
+        _withdraw(daoAmount, daoWalletAddress);
     }
 
     /// @dev Function to withdraw Developer's funds
@@ -186,27 +195,31 @@ contract Escrow {
             msg.sender == devWalletAddress,
             "Only the Dev can withdraw Dev funds"
         );
-        require(fundsForDev > 0, "No Dev funds available for withdrawal");
+
         uint devAmount = fundsForDev;
-        emit Withdrawn(devWalletAddress, devAmount);
+        require(devAmount > 0, "No Dev funds available for withdrawal");
+
         fundsForDev = 0;
-        devWalletAddress.transfer(devAmount);
+
+        _withdraw(devAmount, devWalletAddress);
     }
 
-    /// @dev Function to withdraw arbitrator's funds
+    /// @dev Function to withdraw Arbitrator's funds
     function withdrawArbitrator() external {
         require(
             msg.sender == arbitratorAddress,
-            "Only the aribtrator can withdraw arbitrator funds"
+            "Only the Arbitrator can withdraw Arbitrator funds"
         );
-        require(
-            fundsForArbitrator > 0,
-            "No DAO funds available for withdrawal"
-        );
+
         uint arbitratorAmount = fundsForArbitrator;
-        emit Withdrawn(daoWalletAddress, arbitratorAmount);
+        require(
+            arbitratorAmount > 0,
+            "No Arbitrator funds available for withdrawal"
+        );
+
         fundsForArbitrator = 0;
-        arbitratorAddress.transfer(arbitratorAmount);
+
+        _withdraw(arbitratorAmount, arbitratorAddress);
     }
 
     /// @dev Opens a dispute for a given product. Requires enough Ether to cover the dispute fee.

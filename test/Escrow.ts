@@ -17,13 +17,12 @@ describe("Escrow Contract Tests", function () {
       arbitratorWallet.address
     );
 
-    return { escrowInstance, developerWallet, daoWallet };
+    return { escrowInstance, developerWallet, daoWallet, arbitratorWallet };
   }
 
   async function deployEscrowAndAddProductItems(productItemCount: number) {
-    const { escrowInstance, developerWallet, daoWallet } = await loadFixture(
-      deployEscrow
-    );
+    const { escrowInstance, developerWallet, daoWallet, arbitratorWallet } =
+      await loadFixture(deployEscrow);
     const { productIds, productSellers, productPrices } =
       await generateProducts(productItemCount);
     const totalEtherValue = ethers.utils.parseEther(
@@ -40,20 +39,28 @@ describe("Escrow Contract Tests", function () {
     );
 
     let escrowPopulatedWithProducts = escrowConnectedWithBuyer;
-    return { escrowPopulatedWithProducts, buyer, developerWallet, daoWallet };
+    return {
+      escrowPopulatedWithProducts,
+      buyer,
+      developerWallet,
+      daoWallet,
+      arbitratorWallet,
+    };
   }
 
   describe("Deployment Tests", function () {
     it("Should deploy the contract and set DAO and developer addresses correctly", async function () {
-      const { escrowInstance, developerWallet, daoWallet } = await loadFixture(
-        deployEscrow
-      );
+      const { escrowInstance, developerWallet, daoWallet, arbitratorWallet } =
+        await loadFixture(deployEscrow);
 
       expect(await escrowInstance.devWalletAddress()).to.equal(
         developerWallet.address
       );
       expect(await escrowInstance.daoWalletAddress()).to.equal(
         daoWallet.address
+      );
+      expect(await escrowInstance.arbitratorAddress()).to.equal(
+        arbitratorWallet.address
       );
     });
   });
@@ -228,6 +235,63 @@ describe("Escrow Contract Tests", function () {
       );
       expect(await escrowPopulatedWithProducts.fundsForDao()).to.equal(
         expectedDaoFee
+      );
+    });
+  });
+
+  describe("Arbitrator Functionality Tests", function () {
+    const productCount = 5;
+
+    it("Should allow the arbitrator to mark a product as delivered and withdraw his fees", async function () {
+      const {
+        escrowPopulatedWithProducts,
+        buyer,
+        developerWallet,
+        daoWallet,
+        arbitratorWallet,
+      } = await deployEscrowAndAddProductItems(productCount);
+      const productIndexToCheck = 2;
+
+      const escrowFromBuyer = escrowPopulatedWithProducts.connect(buyer);
+      const openDisputeFee = await escrowFromBuyer.openDisputeFee();
+      await escrowFromBuyer.openDispute(productIndexToCheck, {
+        value: openDisputeFee,
+      });
+
+      const escrowConnectedWithArbitrator =
+        escrowFromBuyer.connect(arbitratorWallet);
+
+      await escrowConnectedWithArbitrator.confirmDelivery(productIndexToCheck);
+
+      const product = await escrowConnectedWithArbitrator.productList(
+        productIndexToCheck
+      );
+
+      expect(product.isDelivered).to.be.true;
+
+      const balanceBeforeWithdrawal = await arbitratorWallet.getBalance();
+
+      await escrowConnectedWithArbitrator.withdrawArbitrator();
+
+      expect(await arbitratorWallet.getBalance()).to.be.gt(
+        balanceBeforeWithdrawal,
+        "It Should allow the arbitrator to withdraw his fees"
+      );
+    });
+
+    it("Should not allow anyone but the arbitrator to arbitrate", async function () {
+      const { escrowPopulatedWithProducts, buyer } =
+        await deployEscrowAndAddProductItems(productCount);
+      const productIndexToCheck = 2;
+      const allSigners = await ethers.getSigners();
+      const nonArbitrator = allSigners[3]; // assuming the non-arbitrator is the 4th account
+      const escrowConnectedWithNonArbitrator =
+        escrowPopulatedWithProducts.connect(nonArbitrator);
+
+      await expect(
+        escrowConnectedWithNonArbitrator.confirmDelivery(productIndexToCheck)
+      ).to.be.revertedWith(
+        "Only the buyer or arbitrator can confirm delivery."
       );
     });
   });

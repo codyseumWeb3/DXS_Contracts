@@ -1,17 +1,17 @@
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 
-import { expect } from "chai";
-import { ethers } from "hardhat";
-import { calculateSum, generateProducts } from "../utils/helpers";
+import { expect } from 'chai';
+import { ethers } from 'hardhat';
+import { calculateSum, generateProducts } from '../utils/helpers';
 
-describe("Escrow Contract Tests", function () {
+describe('Escrow Contract Tests', function () {
   const testBuyerIndex = 9;
   const productIndexToCheck = 2;
 
   async function deployEscrow() {
     const [developerWallet, daoWallet, arbitratorWallet] =
       await ethers.getSigners();
-    const EscrowFactory = await ethers.getContractFactory("Escrow");
+    const EscrowFactory = await ethers.getContractFactory('Escrow');
     const escrowInstance = await EscrowFactory.deploy(
       daoWallet.address,
       developerWallet.address,
@@ -49,8 +49,8 @@ describe("Escrow Contract Tests", function () {
     };
   }
 
-  describe("Deployment Tests", function () {
-    it("Should deploy the contract and set DAO and developer addresses correctly", async function () {
+  describe('Deployment Tests', function () {
+    it('Should deploy the contract and set DAO and developer addresses correctly', async function () {
       const { escrowInstance, developerWallet, daoWallet, arbitratorWallet } =
         await loadFixture(deployEscrow);
 
@@ -66,13 +66,13 @@ describe("Escrow Contract Tests", function () {
     });
   });
 
-  describe("Normal Buying Process Tests", function () {
+  describe('Normal Buying Process Tests', function () {
     const productCount = 5;
     const totalProductValue = ethers.utils.parseEther(
       calculateSum(productCount).toString()
     );
 
-    it("Should add some products", async function () {
+    it('Should add some products', async function () {
       const [buyer, seller, other] = await ethers.getSigners();
       const { productIds, productSellers, productPrices } =
         await generateProducts(productCount);
@@ -82,7 +82,7 @@ describe("Escrow Contract Tests", function () {
 
       await expect(
         escrowInstance.addProducts(productIds, productSellers, productPrices)
-      ).to.be.revertedWith("Ether sent must cover total price of all products");
+      ).to.be.revertedWith('Ether sent must cover total price of all products');
 
       // Connect the buyer signer to the escrow contract
       const escrowFromBuyer = escrowInstance.connect(buyer);
@@ -103,10 +103,10 @@ describe("Escrow Contract Tests", function () {
         escrowFromBuyer.addProducts(productIds, productSellers, productPrices, {
           value: totalProductValue,
         })
-      ).to.be.revertedWith("Product with this ID already exists");
+      ).to.be.revertedWith('Product with this ID already exists');
     });
 
-    it("It should mark the product as delivered and release buyer money", async function () {
+    it('It should mark the product as delivered and release buyer money', async function () {
       const productCountToCreate = 10;
 
       const { escrowPopulatedWithProducts, buyer } =
@@ -122,7 +122,7 @@ describe("Escrow Contract Tests", function () {
       expect(product.isDelivered).to.be.true;
     });
 
-    it("Should not allow buyer to confirm delivery more than once", async function () {
+    it('Should not allow buyer to confirm delivery more than once', async function () {
       const productCount = 5;
 
       const { escrowPopulatedWithProducts, buyer } =
@@ -134,14 +134,14 @@ describe("Escrow Contract Tests", function () {
 
       await expect(
         escrowFromBuyer.confirmDelivery(productIndexToCheck)
-      ).to.be.revertedWith("Product delivery has already been confirmed.");
+      ).to.be.revertedWith('Product delivery has already been confirmed.');
     });
   });
 
-  describe("Batch Confirmation Process Tests", function () {
+  describe('Batch Confirmation Process Tests', function () {
     const productCount = 10;
 
-    it("Should confirm delivery of multiple products", async function () {
+    it('Should confirm delivery of multiple products', async function () {
       const { escrowPopulatedWithProducts, buyer } =
         await deployEscrowAndAddProductItems(productCount);
 
@@ -163,10 +163,10 @@ describe("Escrow Contract Tests", function () {
     });
   });
 
-  describe("Withdrawal Process Tests", function () {
+  describe('Withdrawal Process Tests', function () {
     const productCount = 10;
 
-    it("Should allow withdrawal of funds after product delivery", async function () {
+    it('Should allow withdrawal of funds after product delivery', async function () {
       const { escrowPopulatedWithProducts, buyer } =
         await deployEscrowAndAddProductItems(productCount);
 
@@ -185,7 +185,7 @@ describe("Escrow Contract Tests", function () {
       expect(await seller.getBalance()).to.be.gt(balanceBeforeWithdrawal);
     });
 
-    it("Should allow withdrawal of developer and DAO funds after product delivery", async function () {
+    it('Should allow withdrawal of developer and DAO funds after product delivery', async function () {
       const { escrowPopulatedWithProducts, buyer, developerWallet, daoWallet } =
         await deployEscrowAndAddProductItems(productCount);
 
@@ -210,10 +210,10 @@ describe("Escrow Contract Tests", function () {
     });
   });
 
-  describe("Fee Distribution Tests", function () {
+  describe('Fee Distribution Tests', function () {
     const productCount = 5;
 
-    it("Should distribute the fees correctly after product delivery", async function () {
+    it('Should distribute the fees correctly after product delivery', async function () {
       const { escrowPopulatedWithProducts, buyer, developerWallet, daoWallet } =
         await deployEscrowAndAddProductItems(productCount);
 
@@ -234,10 +234,10 @@ describe("Escrow Contract Tests", function () {
     });
   });
 
-  describe("Arbitrator Functionality Tests", function () {
+  describe('Arbitrator Functionality Tests', function () {
     const productCount = 5;
 
-    it("Should allow the arbitrator to mark a product as delivered and withdraw his fees", async function () {
+    it('Should allow the arbitrator to mark a product as delivered and withdraw his fees', async function () {
       const {
         escrowPopulatedWithProducts,
         buyer,
@@ -270,11 +270,11 @@ describe("Escrow Contract Tests", function () {
 
       expect(await arbitratorWallet.getBalance()).to.be.gt(
         balanceBeforeWithdrawal,
-        "It Should allow the arbitrator to withdraw his fees"
+        'It Should allow the arbitrator to withdraw his fees'
       );
     });
 
-    it("Should not allow anyone but the arbitrator to arbitrate", async function () {
+    it('Should not allow anyone but the arbitrator to arbitrate', async function () {
       const { escrowPopulatedWithProducts, buyer } =
         await deployEscrowAndAddProductItems(productCount);
       const productIndexToCheck = 2;
@@ -286,7 +286,7 @@ describe("Escrow Contract Tests", function () {
       await expect(
         escrowConnectedWithNonArbitrator.confirmDelivery(productIndexToCheck)
       ).to.be.revertedWith(
-        "Only the buyer or arbitrator can confirm delivery."
+        'Only the buyer or arbitrator can confirm delivery.'
       );
     });
   });

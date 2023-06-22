@@ -25,9 +25,9 @@ contract PiggyBank {
     /// @param _devAddress the payable address for the Developer
     /// @param _incentiveAddress the payable address for the incentive
     constructor(address _daoAddress, address _devAddress, address _incentiveAddress) {
-        require(_daoAddress != address(0), 'DAO address cannot be the zero address');
-        require(_devAddress != address(0), 'Developer address cannot be the zero address');
-        require(_incentiveAddress != address(0), 'Incentive address cannot be the zero address');
+        require(_daoAddress != address(0), 'DAO address cannot be the zero address.');
+        require(_devAddress != address(0), 'Developer address cannot be the zero address.');
+        require(_incentiveAddress != address(0), 'Incentive address cannot be the zero address.');
 
         owner = msg.sender;
         daoAddress = payable(_daoAddress);
@@ -38,7 +38,7 @@ contract PiggyBank {
     /// @notice Allows a user to make an order by sending Ether to the contract
     /// @dev The amount of Ether sent must be greater than the minimum product price
     function makeOrder() external payable {
-        require(msg.value > minProductPrice, 'value sent is too low');
+        require(msg.value > minProductPrice, 'Value sent is too low.');
         pendingBalance[msg.sender] += msg.value;
         emit OrderMade(msg.sender, msg.value);
     }
@@ -49,7 +49,7 @@ contract PiggyBank {
     /// @param buyerAddress the address of the buyer
     /// @param value the amount of Ether to be distributed
     function paySeller(address payable sellerAddress, address buyerAddress, uint value) external {
-        require(sellerAddress != address(0), 'Seller address cannot be the zero address');
+        require(sellerAddress != address(0), 'Seller address cannot be the zero address.');
         require(msg.sender == owner, 'You are not the contract Owner.');
         require(pendingBalance[buyerAddress] >= value, 'Not enough buyer balance.');
         require(address(this).balance >= value, 'Contract does not have enough balance.');
@@ -97,12 +97,12 @@ contract PiggyBank {
     /// @param newOwner The address to transfer ownership to
     function transferOwnership(address newOwner) external {
         require(msg.sender == owner, 'You are not the contract Owner.');
-        require(newOwner != address(0), 'New owner cannot be the zero address');
+        require(newOwner != address(0), 'New owner cannot be the zero address.');
         owner = newOwner;
     }
 
     /// @dev Fallback function to reject any Ether sent directly to the contract
     fallback() external {
-        revert('Do not send Ether directly');
+        revert('Do not send Ether directly.');
     }
 }

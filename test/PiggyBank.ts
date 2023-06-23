@@ -82,7 +82,7 @@ describe('PiggyBank Contract Tests', function () {
 
       await expect(
         piggyBankInstance.connect(user1).makeOrder({ value: ethers.utils.parseEther('0.005') })
-      ).to.be.revertedWith('value sent is too low')
+      ).to.be.revertedWith('Value sent is too low.')
     })
 
     it('Should not allow non-owners to pay sellers', async function () {

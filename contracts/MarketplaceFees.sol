@@ -92,9 +92,14 @@ contract MarketPlaceFees {
     uint daoShare = (value * 25) / 1000; // 2.5%
     uint devShare = (value * 2) / 100; // 2%
     uint incentiveShare = (value * 1) / 100; //1%
+
+    require(
+      (100 - productMargin + PERCENT_TO_ADD_FOR_FEES) > 0,
+      'Error with product pricing.'
+    );
     // the supplier address will receive the supplier price + fees to pay swap and withdraw)
-    uint supplierShare = (value * (productMargin + PERCENT_TO_ADD_FOR_FEES)) /
-      100;
+    uint supplierShare = (value *
+      (100 - productMargin + PERCENT_TO_ADD_FOR_FEES)) / 100;
 
     uint sellerShare = value -
       daoShare -

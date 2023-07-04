@@ -88,7 +88,7 @@ contract PiggyBankERC20 {
     require(msg.sender == owner, 'You are not the contract Owner.');
     require(pendingBalance[buyerAddress] >= value, 'Not enough buyer balance.');
     require(
-      address(this).balance >= value,
+      acceptedToken.balanceOf(address(this)) >= value,
       'Contract does not have enough balance.'
     );
 

@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
 
-describe('MarketPlaceFees Contract Tests', function () {
+describe('MarketPlaceFeesERC20 Contract Tests', function () {
   let token: Contract;
 
   async function deployToken() {

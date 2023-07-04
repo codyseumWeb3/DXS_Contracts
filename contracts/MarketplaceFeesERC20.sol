@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.18;
 
-import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '../node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 /**
  * @title MarketPlaceFees
@@ -118,7 +118,7 @@ contract MarketPlaceFeesERC20 {
       (100 - productMargin + PERCENT_TO_ADD_FOR_FEES) > 0,
       'Error with product pricing.'
     );
-    // the supplier address will receive the supplier price + fees to pay swap and withdraw)
+
     uint supplierShare = (value *
       (100 - productMargin + PERCENT_TO_ADD_FOR_FEES)) / 100;
 
@@ -128,8 +128,6 @@ contract MarketPlaceFeesERC20 {
       incentiveShare -
       supplierShare;
 
-    acceptedToken.transferFrom(msg.sender, address(this), tokenAmount);
-
     pendingBalance[dao] += daoShare;
     pendingBalance[dev] += devShare;
     pendingBalance[incentive] += incentiveShare;
@@ -137,7 +135,15 @@ contract MarketPlaceFeesERC20 {
 
     emit ProductPurchased(msg.sender, tokenAmount, productMargin);
 
-    acceptedToken.transfer(supplier, supplierShare);
+    bool success = acceptedToken.transferFrom(
+      msg.sender,
+      address(this),
+      tokenAmount
+    );
+    require(success, 'Transfer from buyer to contract failed');
+
+    success = acceptedToken.transfer(supplier, supplierShare);
+    require(success, 'Transfer to supplier failed');
   }
 
   /**
@@ -161,10 +167,14 @@ contract MarketPlaceFeesERC20 {
     pendingBalance[incentive] = 0;
     pendingBalance[seller] = 0;
 
-    acceptedToken.transfer(dao, daoValue);
-    acceptedToken.transfer(dev, devValue);
-    acceptedToken.transfer(incentive, incentiveValue);
-    acceptedToken.transfer(seller, sellerValue);
+    bool success = acceptedToken.transfer(dao, daoValue);
+    require(success, 'Transfer to DAO failed');
+    success = acceptedToken.transfer(dev, devValue);
+    require(success, 'Transfer to dev failed');
+    success = acceptedToken.transfer(incentive, incentiveValue);
+    require(success, 'Transfer to incentive failed');
+    success = acceptedToken.transfer(seller, sellerValue);
+    require(success, 'Transfer to seller failed');
   }
 
   /**

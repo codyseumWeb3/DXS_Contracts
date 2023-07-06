@@ -56,6 +56,33 @@ describe('MarketPlaceFees Contract Tests', function () {
         await marketPlaceFeesInstance.pendingBalance(seller.address)
       ).to.be.gt(0);
     });
+
+    it('Should not allow users to buy products with invalid margin', async function () {
+      const { marketPlaceFeesInstance, user1 } = await loadFixture(
+        deployMarketPlaceFees
+      );
+      const invalidProductMargin = 150;
+
+      await expect(
+        marketPlaceFeesInstance
+          .connect(user1)
+          .buyProduct(invalidProductMargin, {
+            value: ethers.utils.parseEther('1'),
+          })
+      ).to.be.revertedWith('Error with product pricing.');
+    });
+    it('Should not allow users to buy products without sending ether', async function () {
+      const { marketPlaceFeesInstance, user1 } = await loadFixture(
+        deployMarketPlaceFees
+      );
+      const productMargin = 20;
+
+      await expect(
+        marketPlaceFeesInstance.connect(user1).buyProduct(productMargin, {
+          value: ethers.utils.parseEther('0'),
+        })
+      ).to.be.revertedWith('Value sent is too low.');
+    });
   });
 
   describe('Withdraw Balance Tests', function () {
@@ -140,6 +167,18 @@ describe('MarketPlaceFees Contract Tests', function () {
       expect(await marketPlaceFeesInstance.minProductPrice()).to.equal(
         newMinProductPrice
       );
+    });
+  });
+
+  describe('Change Max VAT Tests', function () {
+    it('Should allow owner to change max VAT', async function () {
+      const { marketPlaceFeesInstance, owner } = await loadFixture(
+        deployMarketPlaceFees
+      );
+      const newMaxVAT = 22;
+
+      await marketPlaceFeesInstance.connect(owner).setMaxVAT(newMaxVAT);
+      expect(await marketPlaceFeesInstance.maxVAT()).to.equal(newMaxVAT);
     });
   });
 

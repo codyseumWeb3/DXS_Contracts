@@ -16,6 +16,7 @@ contract MarketPlaceFees {
 
   uint public constant PERCENT_TO_ADD_FOR_FEES = 5;
   uint public minProductPrice = 0.01 ether;
+  uint public maxVAT = 27;
 
   mapping(address => uint) public pendingBalance;
 
@@ -83,25 +84,26 @@ contract MarketPlaceFees {
 
   /**
    * @dev Buy a product
-   * @param productMargin The margin on the product
+   * @param productMarginWithVAT The margin on the product
    */
-  function buyProduct(uint productMargin) external payable {
+  function buyProduct(uint productMarginWithVAT) external payable {
     require(msg.value > minProductPrice, 'Value sent is too low.');
+    uint valueWithVAT = msg.value;
     // Calculate the percentages
-    uint value = msg.value;
-    uint daoShare = (value * 25) / 1000; // 2.5%
-    uint devShare = (value * 2) / 100; // 2%
-    uint incentiveShare = (value * 1) / 100; //1%
+    uint valueWithoutVAT = valueWithVAT / ((100 + maxVAT) * 100); //To get the value without VAT in France for instance -> 120(TTC) / 1.2 = 100(HT)
+    uint daoShare = (valueWithoutVAT * 25) / 1000; // 2.5%
+    uint devShare = (valueWithoutVAT * 2) / 100; // 2%
+    uint incentiveShare = (valueWithoutVAT * 1) / 100; //1%
 
     require(
-      (100 - productMargin + PERCENT_TO_ADD_FOR_FEES) > 0,
+      (productMarginWithVAT + PERCENT_TO_ADD_FOR_FEES) < 100,
       'Error with product pricing.'
     );
     // the supplier address will receive the supplier price + fees to pay swap and withdraw)
-    uint supplierShare = (value *
-      (100 - productMargin + PERCENT_TO_ADD_FOR_FEES)) / 100;
+    uint supplierShare = (valueWithoutVAT *
+      (100 - productMarginWithVAT + PERCENT_TO_ADD_FOR_FEES)) / 100;
 
-    uint sellerShare = value -
+    uint sellerShare = valueWithVAT -
       daoShare -
       devShare -
       incentiveShare -
@@ -112,7 +114,7 @@ contract MarketPlaceFees {
     pendingBalance[incentive] += incentiveShare;
     pendingBalance[seller] += sellerShare;
 
-    emit ProductPurchased(msg.sender, msg.value, productMargin);
+    emit ProductPurchased(msg.sender, msg.value, productMarginWithVAT);
 
     supplier.transfer(supplierShare);
   }
@@ -170,6 +172,16 @@ contract MarketPlaceFees {
     minProductPrice = newMinProductPrice;
 
     emit MinProductPriceChanged(oldPrice, newMinProductPrice);
+  }
+
+  /**
+   * @dev Set the maximum VAT Possible
+   * @param newMaxVAT The new minimum product price
+   */
+  function setMaxVAT(uint newMaxVAT) external {
+    require(msg.sender == owner, 'You are not the contract Owner.');
+    require(newMaxVAT <= 50, 'VAT cannot be greater than 50%.');
+    maxVAT = newMaxVAT;
   }
 
   /**

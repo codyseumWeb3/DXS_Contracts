@@ -143,7 +143,7 @@ describe('PiggyBankERC20 Contract Tests', function () {
       await expect(
         piggyBankInstance
           .connect(user1)
-          .makeOrder(ethers.utils.parseEther('0.005'))
+          .makeOrder(ethers.utils.parseEther('0.00005'))
       ).to.be.revertedWith('Value sent is too low.');
     });
 

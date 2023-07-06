@@ -15,7 +15,7 @@ contract MarketPlaceFees {
   address public owner;
 
   uint public constant PERCENT_TO_ADD_FOR_FEES = 5;
-  uint public minProductPrice = 0.01 ether;
+  uint public minProductPrice = 0.0001 ether;
   uint public maxVAT = 27;
 
   mapping(address => uint) public pendingBalance;

@@ -191,7 +191,7 @@ describe('MarketPlaceFees Contract Tests', function () {
 
       await expect(
         marketPlaceFeesInstance.connect(user1).buyProduct(productMargin, {
-          value: ethers.utils.parseEther('0.005'),
+          value: ethers.utils.parseEther('0.00005'),
         })
       ).to.be.revertedWith('Value sent is too low.');
     });

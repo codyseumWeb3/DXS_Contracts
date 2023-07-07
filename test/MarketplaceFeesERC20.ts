@@ -160,7 +160,7 @@ describe('MarketPlaceFeesERC20 Contract Tests', function () {
         deployMarketPlaceFeesERC20
       );
       const productMargin = 20;
-      const lowPurchaseAmount = ethers.utils.parseEther('0.005');
+      const lowPurchaseAmount = ethers.utils.parseEther('0.00005');
 
       await token
         .connect(user1)

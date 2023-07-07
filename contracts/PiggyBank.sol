@@ -11,7 +11,7 @@ contract PiggyBank {
   address payable public devAddress;
   address payable public incentiveAddress;
   address public owner;
-  uint public minProductPrice = 0.01 ether;
+  uint public minProductPrice = 0.0001 ether;
 
   mapping(address => uint) public pendingBalance;
 

@@ -105,6 +105,7 @@ contract PiggyBank {
     address[] memory buyerAddresses,
     uint[] memory values
   ) external {
+    require(msg.sender == owner, 'You are not the contract Owner.');
     require(
       sellersAddresses.length == values.length,
       'Sellers and values array length mismatch.'
@@ -122,7 +123,6 @@ contract PiggyBank {
         sellerAddress != address(0),
         'Seller address cannot be the zero address.'
       );
-      require(msg.sender == owner, 'You are not the contract Owner.');
       require(
         pendingBalance[buyerAddresses[i]] >= value,
         'Not enough buyer balance for this seller.'

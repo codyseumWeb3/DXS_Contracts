@@ -1,7 +1,7 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
-import bigInt from 'big-integer';
 import { ethers } from 'hardhat';
+import { BigNumber } from 'ethers';
 
 describe('PiggyBank Contract Tests', function () {
   async function deployPiggyBank() {
@@ -114,16 +114,14 @@ describe('PiggyBank Contract Tests', function () {
       expect(await piggyBankInstance.pendingBalance(user3.address)).to.equal(0);
 
       const user4BalanceAfter = await ethers.provider.getBalance(user4.address);
-      const user4Earnings = bigInt(user4BalanceAfter.toString())
-        .subtract(bigInt(user4BalanceBefore.toString()))
-        .toString();
+      const user4Earnings = user4BalanceAfter.sub(user4BalanceBefore);
 
       // Validate the ETH/wei balance of user4,
       // he should have earned 94,5% of user3's ex-balance
-      expect(user4Earnings).to.equal(
-        bigInt(paymentAmount3.toString())
-          .times(bigInt('945'))
-          .divide(bigInt('1000'))
+      expect(user4Earnings.toString()).to.equal(
+        paymentAmount3
+          .mul(BigNumber.from('945'))
+          .div(BigNumber.from('1000'))
           .toString()
       );
     });

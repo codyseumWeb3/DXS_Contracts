@@ -95,6 +95,69 @@ contract PiggyBank {
     sellerAddress.transfer(sellerShare);
   }
 
+  /// @notice Allows the contract owner to pay multiple sellers and distribute the remaining value
+  /// @dev The value is distributed as follows: 2.5% to the DAO, 2% to the developers, 1% to the incentive, and the rest to the seller
+  /// @param sellersAddresses the payable addresses of the sellers
+  /// @param buyerAddresses the address of the buyer
+  /// @param values the amounts of Ether to be distributed to each seller
+  function batchPaySeller(
+    address payable[] memory sellersAddresses,
+    address[] memory buyerAddresses,
+    uint[] memory values
+  ) external {
+    require(msg.sender == owner, 'You are not the contract Owner.');
+    require(
+      sellersAddresses.length == values.length,
+      'Sellers and values array length mismatch.'
+    );
+    require(
+      sellersAddresses.length == buyerAddresses.length,
+      'Sellers and Buyers array length mismatch.'
+    );
+    uint valueLeft;
+    for (uint i = 0; i < sellersAddresses.length; i++) {
+      address payable sellerAddress = sellersAddresses[i];
+      uint value = values[i];
+
+      require(
+        sellerAddress != address(0),
+        'Seller address cannot be the zero address.'
+      );
+      require(
+        pendingBalance[buyerAddresses[i]] >= value,
+        'Not enough buyer balance for this seller.'
+      );
+      require(
+        address(this).balance >= value,
+        'Contract does not have enough balance.'
+      );
+
+      // Decrease the buyer's balance
+      pendingBalance[buyerAddresses[i]] -= value;
+
+      uint sellerShare = (value * 945) / 1000; // The seller received 94.5% (100% - 5.5% fees
+
+      valueLeft += value - sellerShare;
+      emit SellerPaid(sellerAddress, sellerShare);
+
+      sellerAddress.transfer(sellerShare);
+    }
+
+    // Calculate the percentages
+    uint daoShare = (valueLeft * 4545) / 10000; // 45.45% of total remaining value (2.5% of the original transaction value)
+    uint incentiveShare = (valueLeft * 1818) / 10000; // 18.18 % of total remaining value (1% of the original transaction value)
+    uint devShare = valueLeft - daoShare - incentiveShare; // 2%
+
+    require(
+      address(this).balance >= (daoShare + devShare + incentiveShare),
+      'Contract does not have enough balance for DAO, dev and incentive shares.'
+    );
+    // Transfer the values
+    daoAddress.transfer(daoShare);
+    devAddress.transfer(devShare);
+    incentiveAddress.transfer(incentiveShare);
+  }
+
   /// @notice Allows the contract owner to refund a buyer
   /// @dev The value specified must be less than or equal to the buyer's balance
   /// @param buyerAddress the payable address of the buyer

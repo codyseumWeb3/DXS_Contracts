@@ -1,0 +1,22 @@
+import { ethers } from 'hardhat';
+import { addresses } from './addresses';
+
+async function main() {
+  const Escrow = await ethers.getContractFactory('Escrow');
+  const contract = await Escrow.deploy(
+    addresses.daoWalletAddress,
+    addresses.devWalletAddress,
+    addresses.arbitratorWalletAddress
+  );
+
+  await contract.deployed();
+
+  console.log(`Escrow contract deployed to ${contract.address}`);
+}
+
+// We recommend this pattern to be able to use async/await everywhere
+// and properly handle errors.
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

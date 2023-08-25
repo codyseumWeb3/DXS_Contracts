@@ -5,7 +5,7 @@ pragma solidity ^0.8.18;
 import '../node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
 /**
- * @title MarketPlaceFees
+ * @title MarketPlaceFeesERC20
  * @dev A contract for handling marketplace transactions and fees
  */
 contract MarketPlaceFeesERC20 {

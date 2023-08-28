@@ -19,6 +19,7 @@ contract MarketPlaceFees {
   uint public maxVAT = 27;
 
   mapping(address => uint) public pendingBalance;
+  mapping(address => uint) public purchasedBalance;
 
   // Define the events
   event ProductPurchased(
@@ -113,6 +114,8 @@ contract MarketPlaceFees {
     pendingBalance[dev] += devShare;
     pendingBalance[incentive] += incentiveShare;
     pendingBalance[seller] += sellerShare;
+
+    purchasedBalance[msg.sender] += msg.value;
 
     emit ProductPurchased(msg.sender, msg.value, productMarginWithVAT);
 

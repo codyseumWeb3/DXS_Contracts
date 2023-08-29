@@ -2,46 +2,13 @@
 
 pragma solidity ^0.8.18;
 
+import './MarketPlaceCommon.sol';
+
 /**
  * @title MarketPlaceFees
  * @dev A contract for handling marketplace transactions and fees
  */
-contract MarketPlaceFees {
-  address payable public dao;
-  address payable public dev;
-  address payable public incentive;
-  address payable public supplier;
-  address payable public seller;
-  address public owner;
-
-  uint public constant PERCENT_TO_ADD_FOR_FEES = 5;
-  uint public minProductPrice = 0.0001 ether;
-  uint public maxVAT = 27;
-
-  mapping(address => uint) public pendingBalance;
-  mapping(address => uint) public purchasedBalance;
-
-  // Define the events
-  event ProductPurchased(
-    address indexed buyer,
-    uint amount,
-    uint productMargin
-  );
-
-  event BalanceWithdrawn(address indexed withdrawer, uint amount);
-
-  event SupplierChanged(
-    address indexed oldSupplier,
-    address indexed newSupplier
-  );
-
-  event MinProductPriceChanged(uint oldPrice, uint newPrice);
-
-  event OwnershipTransferred(
-    address indexed oldOwner,
-    address indexed newOwner
-  );
-
+contract MarketPlaceFees is MarketPlaceCommon {
   /**
    * @dev Initialize the contract
    * @param _dao DAO's address
@@ -56,31 +23,8 @@ contract MarketPlaceFees {
     address _incentive,
     address _supplier,
     address _seller
-  ) {
-    require(_dao != address(0), 'DAO address cannot be the zero address.');
-    require(
-      _dev != address(0),
-      'Developer address cannot be the zero address.'
-    );
-    require(
-      _incentive != address(0),
-      'Incentive address cannot be the zero address.'
-    );
-    require(
-      _supplier != address(0),
-      'Supplier address cannot be the zero address.'
-    );
-    require(
-      _seller != address(0),
-      'Seller address cannot be the zero address.'
-    );
-
-    owner = msg.sender;
-    dao = payable(_dao);
-    dev = payable(_dev);
-    incentive = payable(_incentive);
-    supplier = payable(_supplier);
-    seller = payable(_seller);
+  ) MarketPlaceCommon(_dao, _dev, _incentive, _supplier, _seller) {
+    minProductPrice = 0.0001 ether;
   }
 
   /**
@@ -91,7 +35,7 @@ contract MarketPlaceFees {
     require(msg.value > minProductPrice, 'Value sent is too low.');
     uint valueWithVAT = msg.value;
     // Calculate the percentages
-    uint valueWithoutVAT = valueWithVAT / ((100 + maxVAT) * 100); //To get the value without VAT in France for instance -> 120(TTC) / 1.2 = 100(HT)
+    uint valueWithoutVAT = (valueWithVAT * 100) / (100 + maxVAT); //To get the value without VAT in France for instance -> 120(TTC) / 1.2 = 100(HT)
     uint daoShare = (valueWithoutVAT * 25) / 1000; // 2.5%
     uint devShare = (valueWithoutVAT * 2) / 100; // 2%
     uint incentiveShare = (valueWithoutVAT * 1) / 100; //1%
@@ -147,60 +91,5 @@ contract MarketPlaceFees {
     dev.transfer(devValue);
     incentive.transfer(incentiveValue);
     seller.transfer(sellerValue);
-  }
-
-  /**
-   * @dev Set a new supplier
-   * @param newSupplier The new supplier's address
-   */
-  function setSupplier(address newSupplier) external {
-    require(msg.sender == owner, 'You are not the contract Owner.');
-    require(
-      newSupplier != address(0),
-      'Supplier address cannot be the zero address.'
-    );
-    address oldSupplier = supplier;
-    supplier = payable(newSupplier);
-
-    emit SupplierChanged(oldSupplier, newSupplier);
-  }
-
-  /**
-   * @dev Set the minimum product price
-   * @param newMinProductPrice The new minimum product price
-   */
-  function setMinProductPrice(uint newMinProductPrice) external {
-    require(msg.sender == owner, 'You are not the contract Owner.');
-    uint oldPrice = minProductPrice;
-    minProductPrice = newMinProductPrice;
-
-    emit MinProductPriceChanged(oldPrice, newMinProductPrice);
-  }
-
-  /**
-   * @dev Set the maximum VAT Possible
-   * @param newMaxVAT The new minimum product price
-   */
-  function setMaxVAT(uint newMaxVAT) external {
-    require(msg.sender == owner, 'You are not the contract Owner.');
-    require(newMaxVAT <= 50, 'VAT cannot be greater than 50%.');
-    maxVAT = newMaxVAT;
-  }
-
-  /**
-   * @dev Transfer the ownership to a new address
-   * @param newOwner The new owner's address
-   */
-  function transferOwnership(address newOwner) external {
-    require(msg.sender == owner, 'You are not the contract Owner.');
-    require(newOwner != address(0), 'New owner cannot be the zero address.');
-    address oldOwner = owner;
-    owner = newOwner;
-
-    emit OwnershipTransferred(oldOwner, newOwner);
-  }
-
-  fallback() external {
-    revert('Do not send Ether directly.');
   }
 }

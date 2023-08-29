@@ -26,6 +26,7 @@ contract MarketPlaceFeesERC20 {
   IERC20 public acceptedToken;
 
   mapping(address => uint) public pendingBalance;
+  mapping(address => uint) public purchasedBalance;
 
   // Define the events
   event ProductPurchased(
@@ -134,6 +135,8 @@ contract MarketPlaceFeesERC20 {
     pendingBalance[seller] += sellerShare;
 
     emit ProductPurchased(msg.sender, tokenAmount, productMargin);
+
+    purchasedBalance[msg.sender] += tokenAmount;
 
     bool success = acceptedToken.transferFrom(
       msg.sender,

@@ -4,27 +4,20 @@ import { ethers } from 'hardhat';
 
 describe('MarketPlaceFees Contract Tests', function () {
   async function deployMarketPlaceFees() {
-    const [owner, dao, dev, incentive, supplier, seller, user1] =
-      await ethers.getSigners();
+    const [owner, dxs, supplier, user1] = await ethers.getSigners();
     const MarketPlaceFeesFactory = await ethers.getContractFactory(
       'MarketPlaceFees'
     );
     const marketPlaceFeesInstance = await MarketPlaceFeesFactory.deploy(
-      dao.address,
-      dev.address,
-      incentive.address,
-      supplier.address,
-      seller.address
+      dxs.address,
+      supplier.address
     );
 
     return {
       marketPlaceFeesInstance,
       owner,
-      dao,
-      dev,
-      incentive,
+      dxs,
       supplier,
-      seller,
       user1,
     };
   }
@@ -41,44 +34,31 @@ describe('MarketPlaceFees Contract Tests', function () {
 
   describe('Product Purchase Tests', function () {
     it('Should allow users to purchase a product', async function () {
-      const { marketPlaceFeesInstance, user1, seller } = await loadFixture(
+      const { marketPlaceFeesInstance, user1, supplier } = await loadFixture(
         deployMarketPlaceFees
       );
 
-      const productMargin = 20;
       const purchaseAmount = ethers.utils.parseEther('1');
 
       await marketPlaceFeesInstance
         .connect(user1)
-        .buyProduct(productMargin, { value: purchaseAmount });
+        .buyProduct({ value: purchaseAmount });
 
-      expect(
-        await marketPlaceFeesInstance.pendingBalance(seller.address)
-      ).to.be.gt(0);
-    });
-
-    it('Should not allow users to buy products with invalid margin', async function () {
-      const { marketPlaceFeesInstance, user1 } = await loadFixture(
-        deployMarketPlaceFees
+      // Get the balance of the contract
+      const contractBalance = await ethers.provider.getBalance(
+        marketPlaceFeesInstance.address
       );
-      const invalidProductMargin = 150;
 
-      await expect(
-        marketPlaceFeesInstance
-          .connect(user1)
-          .buyProduct(invalidProductMargin, {
-            value: ethers.utils.parseEther('1'),
-          })
-      ).to.be.revertedWith('Error with product pricing.');
+      expect(contractBalance).to.be.gt(0);
     });
+
     it('Should not allow users to buy products without sending ether', async function () {
       const { marketPlaceFeesInstance, user1 } = await loadFixture(
         deployMarketPlaceFees
       );
-      const productMargin = 20;
 
       await expect(
-        marketPlaceFeesInstance.connect(user1).buyProduct(productMargin, {
+        marketPlaceFeesInstance.connect(user1).buyProduct({
           value: ethers.utils.parseEther('0'),
         })
       ).to.be.revertedWith('Value sent is too low.');
@@ -87,45 +67,29 @@ describe('MarketPlaceFees Contract Tests', function () {
 
   describe('Withdraw Balance Tests', function () {
     it('Should allow owner to withdraw all balances', async function () {
-      const {
-        marketPlaceFeesInstance,
-        owner,
-        user1,
-        dao,
-        dev,
-        incentive,
-        seller,
-      } = await loadFixture(deployMarketPlaceFees);
+      const { marketPlaceFeesInstance, owner, user1, dxs, supplier } =
+        await loadFixture(deployMarketPlaceFees);
 
-      const productMargin = 20;
       const purchaseAmount = ethers.utils.parseEther('1');
 
       await marketPlaceFeesInstance
         .connect(user1)
-        .buyProduct(productMargin, { value: purchaseAmount });
-
-      const initialBalanceDao = await ethers.provider.getBalance(dao.address);
-      const initialBalanceDev = await ethers.provider.getBalance(dev.address);
-      const initialBalanceIncentive = await ethers.provider.getBalance(
-        incentive.address
-      );
-      const initialBalanceSeller = await ethers.provider.getBalance(
-        seller.address
+        .buyProduct({ value: purchaseAmount });
+      const baseDXSBalance = await ethers.provider.getBalance(dxs.address);
+      const baseSupplierBalance = await ethers.provider.getBalance(
+        supplier.address
       );
 
       await marketPlaceFeesInstance.connect(owner).withdrawAllBalances();
-
-      expect(await ethers.provider.getBalance(dao.address)).to.be.gt(
-        initialBalanceDao
+      const afterWithdrawDXSBalance = await ethers.provider.getBalance(
+        dxs.address
       );
-      expect(await ethers.provider.getBalance(dev.address)).to.be.gt(
-        initialBalanceDev
+      const afterWithdrawSupplierBalance = await ethers.provider.getBalance(
+        supplier.address
       );
-      expect(await ethers.provider.getBalance(incentive.address)).to.be.gt(
-        initialBalanceIncentive
-      );
-      expect(await ethers.provider.getBalance(seller.address)).to.be.gt(
-        initialBalanceSeller
+      expect(afterWithdrawDXSBalance).to.be.greaterThan(baseDXSBalance);
+      expect(afterWithdrawSupplierBalance).to.be.greaterThan(
+        baseSupplierBalance
       );
     });
   });
@@ -187,10 +151,9 @@ describe('MarketPlaceFees Contract Tests', function () {
       const { marketPlaceFeesInstance, user1 } = await loadFixture(
         deployMarketPlaceFees
       );
-      const productMargin = 20;
 
       await expect(
-        marketPlaceFeesInstance.connect(user1).buyProduct(productMargin, {
+        marketPlaceFeesInstance.connect(user1).buyProduct({
           value: ethers.utils.parseEther('0.00005'),
         })
       ).to.be.revertedWith('Value sent is too low.');

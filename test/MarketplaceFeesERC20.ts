@@ -21,28 +21,21 @@ describe('MarketPlaceFeesERC20 Contract Tests', function () {
   async function deployMarketPlaceFeesERC20() {
     const { tokenOwner, token } = await deployToken();
 
-    const [owner, dao, dev, incentive, supplier, seller, user1] =
-      await ethers.getSigners();
+    const [owner, dxs, supplier, user1] = await ethers.getSigners();
     const MarketPlaceFeesERC20Factory = await ethers.getContractFactory(
       'MarketPlaceFeesERC20'
     );
     const marketPlaceFeesInstance = await MarketPlaceFeesERC20Factory.deploy(
-      dao.address,
-      dev.address,
-      incentive.address,
+      dxs.address,
       supplier.address,
-      seller.address,
       token.address
     );
 
     return {
       marketPlaceFeesInstance,
       owner,
-      dao,
-      dev,
-      incentive,
+      dxs,
       supplier,
-      seller,
       user1,
       tokenOwner,
       token,
@@ -51,10 +44,9 @@ describe('MarketPlaceFeesERC20 Contract Tests', function () {
 
   describe('Product Purchase Tests', function () {
     it('Should allow users to purchase a product', async function () {
-      const { marketPlaceFeesInstance, user1, seller, tokenOwner, token } =
+      const { marketPlaceFeesInstance, user1, supplier, tokenOwner, token } =
         await loadFixture(deployMarketPlaceFeesERC20);
 
-      const productMargin = 20;
       const purchaseAmount = ethers.utils.parseEther('10');
 
       await token.connect(tokenOwner).transfer(user1.address, purchaseAmount);
@@ -62,13 +54,11 @@ describe('MarketPlaceFeesERC20 Contract Tests', function () {
       await token
         .connect(user1)
         .approve(marketPlaceFeesInstance.address, purchaseAmount);
-      await marketPlaceFeesInstance
-        .connect(user1)
-        .buyProduct(productMargin, purchaseAmount);
+      await marketPlaceFeesInstance.connect(user1).buyProduct(purchaseAmount);
 
-      expect(
-        await marketPlaceFeesInstance.pendingBalance(seller.address)
-      ).to.be.gt(0);
+      expect(await token.balanceOf(marketPlaceFeesInstance.address)).to.be.gt(
+        0
+      );
     });
   });
 
@@ -78,38 +68,26 @@ describe('MarketPlaceFeesERC20 Contract Tests', function () {
         marketPlaceFeesInstance,
         owner,
         user1,
-        dao,
-        dev,
-        incentive,
-        seller,
+        dxs,
+        supplier,
         tokenOwner,
         token,
       } = await loadFixture(deployMarketPlaceFeesERC20);
 
-      const productMargin = 20;
       const purchaseAmount = ethers.utils.parseEther('10');
       await token.connect(tokenOwner).transfer(user1.address, purchaseAmount);
       await token
         .connect(user1)
         .approve(marketPlaceFeesInstance.address, purchaseAmount);
-      await marketPlaceFeesInstance
-        .connect(user1)
-        .buyProduct(productMargin, purchaseAmount);
 
-      const initialBalanceDao = await token.balanceOf(dao.address);
-      const initialBalanceDev = await token.balanceOf(dev.address);
-      const initialBalanceIncentive = await token.balanceOf(incentive.address);
-      const initialBalanceSeller = await token.balanceOf(seller.address);
-
+      await marketPlaceFeesInstance.connect(user1).buyProduct(purchaseAmount);
+      
+      const initialBalanceDxs = await token.balanceOf(dxs.address);
+      const initialBalanceSupplier = await token.balanceOf(supplier.address);
       await marketPlaceFeesInstance.connect(owner).withdrawAllBalances();
-
-      expect(await token.balanceOf(dao.address)).to.be.gt(initialBalanceDao);
-      expect(await token.balanceOf(dev.address)).to.be.gt(initialBalanceDev);
-      expect(await token.balanceOf(incentive.address)).to.be.gt(
-        initialBalanceIncentive
-      );
-      expect(await token.balanceOf(seller.address)).to.be.gt(
-        initialBalanceSeller
+      expect(await token.balanceOf(dxs.address)).to.be.gt(initialBalanceDxs);
+      expect(await token.balanceOf(supplier.address)).to.be.gt(
+        initialBalanceSupplier
       );
     });
   });
@@ -159,7 +137,6 @@ describe('MarketPlaceFeesERC20 Contract Tests', function () {
       const { marketPlaceFeesInstance, user1 } = await loadFixture(
         deployMarketPlaceFeesERC20
       );
-      const productMargin = 20;
       const lowPurchaseAmount = ethers.utils.parseEther('0.00005');
 
       await token
@@ -167,9 +144,7 @@ describe('MarketPlaceFeesERC20 Contract Tests', function () {
         .approve(marketPlaceFeesInstance.address, lowPurchaseAmount);
 
       await expect(
-        marketPlaceFeesInstance
-          .connect(user1)
-          .buyProduct(productMargin, lowPurchaseAmount)
+        marketPlaceFeesInstance.connect(user1).buyProduct(lowPurchaseAmount)
       ).to.be.revertedWith('Value sent is too low.');
     });
 

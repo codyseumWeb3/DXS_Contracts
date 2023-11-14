@@ -7,14 +7,10 @@ pragma solidity ^0.8.18;
  * @dev A base contract for handling common marketplace functionalities
  */
 contract MarketPlaceCommon {
-  address payable public dao;
-  address payable public dev;
-  address payable public incentive;
+  address payable public dxs;
   address payable public supplier;
-  address payable public seller;
   address public owner;
 
-  uint public constant PERCENT_TO_ADD_FOR_FEES = 5;
   uint public minProductPrice;
   uint public maxVAT = 27;
 
@@ -23,8 +19,7 @@ contract MarketPlaceCommon {
 
   event ProductPurchased(
     address indexed buyer,
-    uint amount,
-    uint productMargin
+    uint amount
   );
 
   event BalanceWithdrawn(address indexed withdrawer, uint amount);
@@ -43,43 +38,23 @@ contract MarketPlaceCommon {
 
   /**
    * @dev Initialize the contract
-   * @param _dao DAO's address
-   * @param _dev Developer's address
-   * @param _incentive Incentive's address
+   * @param _dxs Decentrashop's address
    * @param _supplier Supplier's address
-   * @param _seller Seller's address
    */
-  constructor(
-    address _dao,
-    address _dev,
-    address _incentive,
-    address _supplier,
-    address _seller
-  ) {
-    require(_dao != address(0), 'DAO address cannot be the zero address.');
+  constructor(address _dxs, address _supplier) {
     require(
-      _dev != address(0),
-      'Developer address cannot be the zero address.'
+      _dxs != address(0),
+      'Decentrashop address cannot be the zero address.'
     );
-    require(
-      _incentive != address(0),
-      'Incentive address cannot be the zero address.'
-    );
+
     require(
       _supplier != address(0),
       'Supplier address cannot be the zero address.'
     );
-    require(
-      _seller != address(0),
-      'Seller address cannot be the zero address.'
-    );
 
     owner = msg.sender;
-    dao = payable(_dao);
-    dev = payable(_dev);
-    incentive = payable(_incentive);
+    dxs = payable(_dxs);
     supplier = payable(_supplier);
-    seller = payable(_seller);
   }
 
   modifier onlyOwner() {

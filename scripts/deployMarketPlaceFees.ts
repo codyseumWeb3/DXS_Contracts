@@ -4,11 +4,8 @@ import { addresses } from './addresses';
 async function main() {
   const MarketPlaceFees = await ethers.getContractFactory('MarketPlaceFees');
   const contract = await MarketPlaceFees.deploy(
-    addresses.daoWalletAddress,
-    addresses.devWalletAddress,
-    addresses.incentiveWalletAddress,
-    addresses.supplierWalletAddress,
-    addresses.sellerWalletAddress
+    addresses.dxsWalletAddress,
+    addresses.supplierWalletAddress
   );
 
   await contract.deployed();

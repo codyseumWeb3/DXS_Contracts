@@ -26,6 +26,6 @@
     "test": "REPORT_GAS=true npx hardhat test --network hardhat",
     "deploy:piggybank": "npx hardhat run scripts/deployPiggyBank.ts",
     "deploy:escrow": "npx hardhat run scripts/deployEscrow.ts",
-    "deploy:marketplacefees": "npx hardhat run scripts/deployMarketPlaceFees.ts"
+    "deploy:marketplacefees": "npx hardhat run scripts/deployMarketPlaceFees.ts "
   }
 }

@@ -118,6 +118,18 @@ describe('MarketPlaceFees Contract Tests', function () {
     });
   });
 
+  describe('Change DXS Tests', function () {
+    it('Should allow owner to change DXS address', async function () {
+      const { marketPlaceFeesInstance, owner, user1 } = await loadFixture(
+        deployMarketPlaceFees
+      );
+      const newDXS = user1.address;
+
+      await marketPlaceFeesInstance.connect(owner).setDXS(newDXS);
+      expect(await marketPlaceFeesInstance.dxs()).to.equal(user1.address);
+    });
+  });
+
   describe('Change Min Product Price Tests', function () {
     it('Should allow owner to change minimum product price', async function () {
       const { marketPlaceFeesInstance, owner } = await loadFixture(

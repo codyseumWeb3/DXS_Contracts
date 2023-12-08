@@ -14,13 +14,9 @@ contract MarketPlaceCommon {
   uint public minProductPrice;
   uint public maxVAT = 27;
 
-  mapping(address => uint) public pendingBalance;
   mapping(address => uint) public purchasedBalance;
 
-  event ProductPurchased(
-    address indexed buyer,
-    uint amount
-  );
+  event ProductPurchased(address indexed buyer, uint amount);
 
   event BalanceWithdrawn(address indexed withdrawer, uint amount);
 
@@ -28,6 +24,8 @@ contract MarketPlaceCommon {
     address indexed oldSupplier,
     address indexed newSupplier
   );
+
+  event DXSChanged(address indexed oldDXS, address indexed newDXS);
 
   event MinProductPriceChanged(uint oldPrice, uint newPrice);
 
@@ -71,6 +69,14 @@ contract MarketPlaceCommon {
     supplier = payable(newSupplier);
 
     emit SupplierChanged(oldSupplier, newSupplier);
+  }
+
+  function setDXS(address newDXS) external onlyOwner {
+    require(newDXS != address(0), 'DXS address cannot be the zero address.');
+    address oldDXS = dxs;
+    dxs = payable(newDXS);
+
+    emit DXSChanged(oldDXS, newDXS);
   }
 
   function setMinProductPrice(uint newMinProductPrice) external onlyOwner {

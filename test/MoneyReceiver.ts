@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
+import { Contract } from 'ethers';
 
 describe('MoneyReceiver Contract Tests', function () {
   async function deployMoneyReceiverFixture() {
@@ -21,6 +22,19 @@ describe('MoneyReceiver Contract Tests', function () {
     );
 
     return { moneyReceiverInstance, owner, otherAccount, mockERC20 };
+  }
+
+  async function deployToken() {
+    let token: Contract;
+    const [tokenOwner] = await ethers.getSigners();
+    const Token = await ethers.getContractFactory('Token');
+    token = await Token.deploy(
+      'Test Token',
+      'TST',
+      ethers.utils.parseEther('10000')
+    );
+
+    return { tokenOwner, token };
   }
 
   describe('Deployment Tests', function () {
@@ -114,6 +128,54 @@ describe('MoneyReceiver Contract Tests', function () {
         moneyReceiverInstance.address
       );
       expect(balance).to.equal(ethers.utils.parseEther('1'));
+    });
+  });
+
+  describe('ERC20 Token Receiving Tests', function () {
+    async function deployMoneyReceiverAndTokenFixture() {
+      const [owner, otherAccount] = await ethers.getSigners();
+      const MoneyReceiverFactory = await ethers.getContractFactory(
+        'MoneyReceiver'
+      );
+      const moneyReceiverInstance = await MoneyReceiverFactory.deploy(
+        otherAccount.address
+      );
+
+      // Deploy ERC20 token using the provided function
+      const { tokenOwner, token } = await deployToken();
+
+      return { moneyReceiverInstance, owner, otherAccount, token, tokenOwner };
+    }
+
+    it('Should correctly receive ERC20 tokens', async function () {
+      const { moneyReceiverInstance, otherAccount, token, tokenOwner } =
+        await loadFixture(deployMoneyReceiverAndTokenFixture);
+
+      const transferToOtherAccount = ethers.utils.parseEther('1000');
+      await token
+        .connect(tokenOwner)
+        .transfer(otherAccount.address, transferToOtherAccount);
+
+      expect(await token.balanceOf(otherAccount.address)).to.equal(
+        transferToOtherAccount
+      );
+
+      const initialContractBalance = await token.balanceOf(
+        moneyReceiverInstance.address
+      );
+
+      const transferAmount = ethers.utils.parseEther('100');
+      await token
+        .connect(otherAccount)
+        .transfer(moneyReceiverInstance.address, transferAmount);
+
+      const newContractBalance = await token.balanceOf(
+        moneyReceiverInstance.address
+      );
+
+      expect(newContractBalance).to.equal(
+        initialContractBalance.add(transferAmount)
+      );
     });
   });
 

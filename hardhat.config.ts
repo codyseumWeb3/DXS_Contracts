@@ -1,11 +1,12 @@
-import { HardhatUserConfig } from 'hardhat/config'
-import '@nomicfoundation/hardhat-toolbox'
-require('dotenv').config()
-import 'hardhat-gas-reporter'
+import { HardhatUserConfig } from 'hardhat/config';
+import '@nomicfoundation/hardhat-toolbox';
+require('dotenv').config();
+import 'hardhat-gas-reporter';
 
-const privateKey = process.env.PK!
+const privateKey = process.env.PK!;
+const etherscanApiKey = process.env.ETHERSCAN_API_KEY!; // Ensure this is set in your .env file
 
-const isPKValid = /^(0x)?[0-9a-fA-F]{64}$/.test(privateKey)
+const isPKValid = /^(0x)?[0-9a-fA-F]{64}$/.test(privateKey);
 
 const config: HardhatUserConfig = {
   gasReporter: {
@@ -33,6 +34,13 @@ const config: HardhatUserConfig = {
       },
     },
   },
-}
 
-export default config
+  etherscan: {
+    apiKey: {
+      mainnet: etherscanApiKey,
+      sepolia: etherscanApiKey,
+    },
+  },
+};
+
+export default config;

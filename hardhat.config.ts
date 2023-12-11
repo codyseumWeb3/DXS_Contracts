@@ -14,11 +14,12 @@ function isPrivateKeyValid(pk: string) {
 
 const privateKeys = [privateKey1, privateKey2, privateKey3];
 
+let isPKValid = true;
+
 privateKeys.forEach((pk, index) => {
   if (!isPrivateKeyValid(pk)) {
-    console.error(`Private Key ${index + 1} is invalid: ${pk}`);
-    process.exit(1);
-  }
+    isPKValid = false;
+  } else isPKValid = true;
 });
 
 const config: HardhatUserConfig = {
@@ -29,11 +30,14 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {},
-
-    sepolia: {
-      url: 'https://eth-sepolia.g.alchemy.com/v2/FfmH35zf4fifvH3eFrKPTSRi8IUW4aRV',
-      accounts: [privateKey1, privateKey2, privateKey3],
-    },
+    ...(isPKValid
+      ? {
+          sepolia: {
+            url: 'https://eth-sepolia.g.alchemy.com/v2/FfmH35zf4fifvH3eFrKPTSRi8IUW4aRV',
+            accounts: [privateKey1, privateKey2, privateKey3],
+          },
+        }
+      : {}),
   },
   solidity: {
     version: '0.8.18',

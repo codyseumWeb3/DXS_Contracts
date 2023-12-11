@@ -4,6 +4,7 @@ coverage
 coverage.json
 typechain
 typechain-types
+deployedContractsOn*.json
 
 # Hardhat files
 cache

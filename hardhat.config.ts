@@ -3,10 +3,23 @@ import '@nomicfoundation/hardhat-toolbox';
 require('dotenv').config();
 import 'hardhat-gas-reporter';
 
-const privateKey = process.env.PK!;
-const etherscanApiKey = process.env.ETHERSCAN_API_KEY!; // Ensure this is set in your .env file
+const privateKey1 = process.env.PK_1!;
+const privateKey2 = process.env.PK_2!;
+const privateKey3 = process.env.PK_3!;
+const etherscanApiKey = process.env.ETHERSCAN_API_KEY!;
 
-const isPKValid = /^(0x)?[0-9a-fA-F]{64}$/.test(privateKey);
+function isPrivateKeyValid(pk: string) {
+  return /^(0x)?[0-9a-fA-F]{64}$/.test(pk);
+}
+
+const privateKeys = [privateKey1, privateKey2, privateKey3];
+
+privateKeys.forEach((pk, index) => {
+  if (!isPrivateKeyValid(pk)) {
+    console.error(`Private Key ${index + 1} is invalid: ${pk}`);
+    process.exit(1);
+  }
+});
 
 const config: HardhatUserConfig = {
   gasReporter: {
@@ -16,14 +29,11 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {},
-    ...(isPKValid
-      ? {
-          sepolia: {
-            url: 'https://eth-sepolia.g.alchemy.com/v2/FfmH35zf4fifvH3eFrKPTSRi8IUW4aRV',
-            accounts: [privateKey],
-          },
-        }
-      : {}),
+
+    sepolia: {
+      url: 'https://eth-sepolia.g.alchemy.com/v2/FfmH35zf4fifvH3eFrKPTSRi8IUW4aRV',
+      accounts: [privateKey1, privateKey2, privateKey3],
+    },
   },
   solidity: {
     version: '0.8.18',

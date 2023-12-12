@@ -1,6 +1,33 @@
 import { ethers, run } from 'hardhat';
 import { addresses } from './addresses';
 import fs from 'fs';
+import path from 'path';
+
+const MoneyReceiverName = 'MoneyReceiver';
+const MarketPlaceFeesName = 'MarketPlaceFees';
+
+function generateTypeScriptFile(
+  contractName: string,
+  contractDetails: any,
+  contractFactory: any
+) {
+  const contractABI = contractFactory.interface.format(
+    ethers.utils.FormatTypes.json
+  );
+
+  const tsContent = `
+    export const ${contractName}Details = {
+      abi: ${JSON.stringify(contractABI, null, 2)},
+      address: "${contractDetails.address}",
+      owner: "${contractDetails.owner}",
+      argument: ${JSON.stringify(contractDetails.argument, null, 2)}
+    };
+  `;
+
+  const filePath = path.join(__dirname, `../contractsInfos/${contractName}.ts`);
+  fs.writeFileSync(filePath, tsContent);
+  console.log(`${contractName}.ts generated successfully.`);
+}
 
 async function main() {
   console.log('Retrieving signers...');
@@ -14,20 +41,20 @@ async function main() {
     dxsMarketplaceDeployer.address
   );
 
-
   const signerAddresses = [
     dxsReceiverOwner.address,
     merkleReceiverOwner.address,
-    dxsMarketplaceDeployer.address
+    dxsMarketplaceDeployer.address,
   ];
 
   await checkEnoughBalanceOfAddresses(signerAddresses);
 
   console.log('Deploying the first MoneyReceiver contract for DXS...');
   const MoneyReceiver1 = await ethers.getContractFactory(
-    'MoneyReceiver',
+    MoneyReceiverName,
     dxsReceiverOwner
   );
+
   console.log('Deploying MoneyReceiver for DXS...');
   const DXSReceiver = await MoneyReceiver1.deploy(addresses.MoneyReceiverDXS);
   console.log('Awaiting deployment of MoneyReceiver DXS...');
@@ -38,7 +65,7 @@ async function main() {
 
   console.log('Deploying the second MoneyReceiver contract for Supplier...');
   const MoneyReceiver2 = await ethers.getContractFactory(
-    'MoneyReceiver',
+    MoneyReceiverName,
     merkleReceiverOwner
   );
   console.log('Deploying MoneyReceiver for Supplier...');
@@ -53,7 +80,7 @@ async function main() {
 
   console.log('Initializing MarketPlaceFees contract factory...');
   const MarketPlaceFees = await ethers.getContractFactory(
-    'MarketPlaceFees',
+    MarketPlaceFeesName,
     dxsMarketplaceDeployer
   );
   console.log('MarketPlaceFees contract factory initialized.');
@@ -67,6 +94,19 @@ async function main() {
   await MarketplaceContract.deployed();
   console.log(
     `MarketPlaceFees contract deployed to ${MarketplaceContract.address} by ${dxsMarketplaceDeployer.address}`
+  );
+
+  generateTypeScriptFile(
+    MarketPlaceFeesName,
+    {
+      address: MarketplaceContract.address,
+      owner: dxsMarketplaceDeployer.address,
+      argument: {
+        DXSReceiver: DXSReceiver.address,
+        MerkleReceiver: MerkleReceiver.address,
+      },
+    },
+    MoneyReceiver1
   );
 
   console.log('Compiling deployment details...');

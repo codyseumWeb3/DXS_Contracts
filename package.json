@@ -1,9 +1,6 @@
 {
-  "name": "@codyseum/dxs-contracts",
-  "version": "1.0.0",
-  "description": "Contracts infos for DXSContracts.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "name": "decentrashop-sc",
+  "version": "0.0.1",
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
@@ -30,6 +27,8 @@
     "test": "REPORT_GAS=true npx hardhat test --network hardhat",
     "deploy:piggybank": "npx hardhat run scripts/deployPiggyBank.ts",
     "deploy:escrow": "npx hardhat run scripts/deployEscrow.ts",
-    "deploy:marketplacefees": "npx hardhat run scripts/deployMarketPlaceFees.ts "
+    "deploy:marketplacefees": "npx hardhat run scripts/deployMarketPlaceFees.ts ",
+    "publish:contracts": "sh ./publish-package.sh",
+    "build": "tsc"
   }
 }

@@ -1,0 +1,13 @@
+{
+  "name": "@decentrashop/contracts",
+  "version": "0.0.1",
+  "publishConfig": {
+    "access": "public"
+  },
+  "description": "Contracts infos for DXSContracts.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "publish:contracts": "sh ../publish-package.sh"
+  }
+}

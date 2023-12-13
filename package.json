@@ -1,5 +1,9 @@
 {
-  "name": "hardhat-project",
+  "name": "@codyseum/dxs-contracts",
+  "version": "1.0.0",
+  "description": "Contracts infos for DXSContracts.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",

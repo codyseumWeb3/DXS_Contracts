@@ -31,11 +31,11 @@ function generateTypeScriptFile(
 
 async function main() {
   console.log('Retrieving signers...');
-  const [dxsReceiverOwner, merkleReceiverOwner, dxsMarketplaceDeployer] =
+  const [dxsReceiverOwner, supplierReceiverOwner, dxsMarketplaceDeployer] =
     await ethers.getSigners();
 
   console.log('dxsReceiverOwner address:', dxsReceiverOwner.address);
-  console.log('merkleReceiverOwner address:', merkleReceiverOwner.address);
+  console.log('SupplierReceiverOwner address:', supplierReceiverOwner.address);
   console.log(
     'dxsMarketplaceDeployer address:',
     dxsMarketplaceDeployer.address
@@ -43,7 +43,7 @@ async function main() {
 
   const signerAddresses = [
     dxsReceiverOwner.address,
-    merkleReceiverOwner.address,
+    supplierReceiverOwner.address,
     dxsMarketplaceDeployer.address,
   ];
 
@@ -66,16 +66,16 @@ async function main() {
   console.log('Deploying the second MoneyReceiver contract for Supplier...');
   const MoneyReceiver2 = await ethers.getContractFactory(
     MoneyReceiverName,
-    merkleReceiverOwner
+    supplierReceiverOwner
   );
   console.log('Deploying MoneyReceiver for Supplier...');
-  const MerkleReceiver = await MoneyReceiver2.deploy(
-    addresses.MoneyReceiverMerkle
+  const SupplierReceiver = await MoneyReceiver2.deploy(
+    addresses.MoneyReceiverSupplier
   );
   console.log('Awaiting deployment of MoneyReceiver for Supplier...');
-  await MerkleReceiver.deployed();
+  await SupplierReceiver.deployed();
   console.log(
-    `MoneyReceiver for Supplier deployed to ${MerkleReceiver.address} by ${merkleReceiverOwner.address}`
+    `MoneyReceiver for Supplier deployed to ${SupplierReceiver.address} by ${supplierReceiverOwner.address}`
   );
 
   console.log('Initializing MarketPlaceFees contract factory...');
@@ -88,7 +88,7 @@ async function main() {
   console.log('Deploying MarketPlaceFees contract...');
   const MarketplaceContract = await MarketPlaceFees.deploy(
     DXSReceiver.address,
-    MerkleReceiver.address
+    SupplierReceiver.address
   );
   console.log('Awaiting deployment of MarketPlaceFees contract...');
   await MarketplaceContract.deployed();
@@ -103,7 +103,7 @@ async function main() {
       owner: dxsMarketplaceDeployer.address,
       argument: {
         DXSReceiver: DXSReceiver.address,
-        MerkleReceiver: MerkleReceiver.address,
+        SupplierReceiver: SupplierReceiver.address,
       },
     },
     MoneyReceiver1
@@ -119,17 +119,17 @@ async function main() {
         owner: dxsReceiverOwner.address,
         DXSReceiver: addresses.MoneyReceiverDXS,
       },
-      MoneyReceiverMerkle: {
-        address: MerkleReceiver.address,
-        owner: merkleReceiverOwner.address,
-        MerkleReceiver: addresses.MoneyReceiverMerkle,
+      MoneyReceiverSupplier: {
+        address: SupplierReceiver.address,
+        owner: supplierReceiverOwner.address,
+        SupplierReceiver: addresses.MoneyReceiverSupplier,
       },
       MarketPlaceFees: {
         address: MarketplaceContract.address,
         owner: dxsMarketplaceDeployer.address,
         feesReceivers: {
           DXSReceiver: DXSReceiver.address,
-          MerkleReceiver: MerkleReceiver.address,
+          SupplierReceiver: SupplierReceiver.address,
         },
       },
     },
@@ -154,7 +154,7 @@ async function main() {
         );
         await run('verify:verify', {
           address: MarketplaceContract.address,
-          constructorArguments: [DXSReceiver.address, MerkleReceiver.address],
+          constructorArguments: [DXSReceiver.address, SupplierReceiver.address],
         });
         console.log('Contract verified on Etherscan.');
         break;

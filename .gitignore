@@ -4,6 +4,13 @@ coverage
 coverage.json
 typechain
 typechain-types
+deployedContractsOn*.json
+.npmrc
+
+/dist/**/*.js
+/dist/**/*.ts
+!/dist/package.json
+
 
 # Hardhat files
 cache

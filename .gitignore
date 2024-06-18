@@ -15,4 +15,6 @@ deployedContractsOn*.json
 # Hardhat files
 cache
 artifacts
+# Ignore JSON files starting with 'wallet'
+wallet*.json
 
